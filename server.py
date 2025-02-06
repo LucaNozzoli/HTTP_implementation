@@ -6,26 +6,26 @@ import _thread
 import hashlib
 import time
 
-TCP_IP = '127.0.0.1'
-TCP_PORT = 5000
-BUFFER_SIZE = 1024
+SERVER_TCP_IP = '127.0.0.1'
+SERVER_TCP_PORT = 4000
+SERVER_BUFFER_SIZE = 1024
 
 client_threads = _thread.allocate_lock()
 
 endpoints = {
-    "/": "home.html",
-    "/page":"htmlPage.html",
-    "/landscape": "landscape.jpg",
-    "/lunar": "lunar_new_year.jpg"
+    "/": "base.html",
+    "/sample":"sample.html",
+    "/utfpr": "./images/utfpr.jpeg",
+    "/london": "./images/london.jpg"
 }
 
 
 def connection_handling(connection, address) -> bool:
     while True:
-        data = connection.recv(BUFFER_SIZE)
-        if not data:
+        content = connection.recv(SERVER_BUFFER_SIZE)
+        if not content:
             break
-        message = data.decode()
+        message = content.decode()
         request = message.split("Host")[0].strip()  # Strip any extra whitespace
 
         print("Request received:", message)
@@ -34,6 +34,7 @@ def connection_handling(connection, address) -> bool:
             if request.startswith(f"GET {endpoint} HTTP/1.1"):
                 print("Matching endpoint found:", endpoint)
                 if os.path.exists(filename):
+                    print('file_found')
 
                     if filename.endswith(".html"):
                         with open(filename, "r", encoding="utf-8") as file:
@@ -44,7 +45,8 @@ def connection_handling(connection, address) -> bool:
 
                         response = (response_status + response_header + file_body).encode("utf-8")
 
-                    elif filename.endswith(".jpg"):
+                    elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                        print('file_not_found')
                         with open(filename, "rb") as file:
                             file_body = file.read()
 
@@ -69,23 +71,18 @@ def connection_handling(connection, address) -> bool:
 def Main():
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((TCP_IP, TCP_PORT))
+    sock.bind((SERVER_TCP_IP, SERVER_TCP_PORT))
     sock.listen()
-    print("SERVER INFO: SERVER IS NOW LISTENING. AGORA ESTÁ DEMONSTRANDO A VERDADEIRA ESSÊNCIA")
+    print(f"Server up and listening on port {SERVER_TCP_PORT}")
 
     
     while True:
         connection, address = sock.accept()
-        print("SERVER INFO: NEW CONNECTION ON THE FOLLOWING ADDRESS: ", address)
+        print("New connection created on: ", address)
         client_threads.acquire()
 
         _thread.start_new_thread(connection_handling, (connection, address))
         
         client_threads.release()
         
-    # sock.close()
-        # print ("received data:", data.decode())
-        # conn.send(data)  # echo
-    # conn.close()
-
 Main()
