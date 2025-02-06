@@ -34,8 +34,6 @@ def connection_handling(connection, address) -> bool:
             if request.startswith(f"GET {endpoint} HTTP/1.1"):
                 print("Matching endpoint found:", endpoint)
                 if os.path.exists(filename):
-                    print('file_found')
-
                     if filename.endswith(".html"):
                         with open(filename, "r", encoding="utf-8") as file:
                             file_body = file.read()
@@ -46,7 +44,6 @@ def connection_handling(connection, address) -> bool:
                         response = (response_status + response_header + file_body).encode("utf-8")
 
                     elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
-                        print('file_not_found')
                         with open(filename, "rb") as file:
                             file_body = file.read()
 
